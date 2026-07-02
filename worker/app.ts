@@ -1,112 +1,47 @@
 import crypto from "node:crypto";
 import path from "node:path";
-import { Readable } from "node:stream";
-import { createWriteStream, existsSync, mkdirSync } from "node:fs";
-import fs from "fs/promises";
-import {
-  S3Client,
-  GetObjectCommand,
-  PutObjectCommand,
-  DeleteObjectCommand,
-} from "@aws-sdk/client-s3";
-import { spawn } from "node:child_process";
+import { existsSync, mkdirSync } from "node:fs";
+import transcodeVideo from "./src/transcodeVideo.js";
+import { deleteS3Object, downloadS3Object, uploadDirectory } from "./src/s3.js";
 
 const UPLOAD_ROOT = "/tmp";
-const outputBucket = process.env["OUTPUT_BUCKET"]!;
-const s3Client = new S3Client({ region: "ap-south-1" });
+const jobId = process.env["JOB_ID"];
+const inputBucket = process.env["INPUT_BUCKET"];
+const inputKey = process.env["INPUT_KEY"];
+const outputBucket = process.env["OUTPUT_BUCKET"];
 
-const handler = async (bucketName: string, objectKey: string) => {
-  const result = await s3Client.send(
-    new GetObjectCommand({ Bucket: bucketName, Key: objectKey }),
+if (!jobId || !inputBucket || !inputKey || !outputBucket)
+  throw new Error(
+    "Job Id, Input Bucket, Input Key and Output Bucket all are required!",
   );
 
-  const contentType = result.ContentType;
-  if (!contentType?.startsWith("video/")) {
-    console.log("non-video file detected, skipping...");
-    return;
-  }
+if (!process.env["AWS_CONTAINER_CREDENTIALS_RELATIVE_URI"]) {
+  throw new Error("Container must be authorised to work with the S3!");
+}
 
-  if (!result.Body) {
-    console.log("file doesn't have any content!, skipping...");
-    return;
-  }
-
-  const incomingFilepath = path.join(
-    UPLOAD_ROOT,
-    crypto.randomUUID(),
-    path.extname(objectKey),
-  );
-  const bodyStream = result.Body as Readable;
-  const writeStream = createWriteStream(incomingFilepath);
-  bodyStream.pipe(writeStream, { end: true });
-
+try {
+  // create the output directory to store the transcoded segments
   const outputName = crypto.randomUUID();
   const outputPath = path.join(UPLOAD_ROOT, outputName);
-
   if (!existsSync(outputPath)) {
     mkdirSync(outputPath, { recursive: true });
   }
 
-  const ffmpegCommand = `ffmpeg -i ${incomingFilepath} \
-      -map 0:v:0 -map 0:a:0 \
-      -map 0:v:0 -map 0:a:0 \
-      -map 0:v:0 -map 0:a:0 \
-      -c:v libx264 -c:a aac -ar 48000 \
-      -filter:v:0 scale=w=640:h=360  -b:v:0 800k  -maxrate:v:0 1000k -bufsize:v:0 1600k \
-      -filter:v:1 scale=w=854:h=480  -b:v:1 1400k -maxrate:v:1 1800k -bufsize:v:1 2800k \
-      -filter:v:2 scale=w=1280:h=720 -b:v:2 2800k -maxrate:v:2 3500k -bufsize:v:2 5600k \
-      -b:a:0 96k -b:a:1 128k -b:a:2 128k \
-      -preset medium \
-      -g 48 -keyint_min 48 -sc_threshold 0 \
-      -f hls \
-      -hls_time 6 \
-      -hls_playlist_type vod \
-      -hls_flags independent_segments \
-      -master_pl_name master.m3u8 \
-      -var_stream_map "v:0,a:0,name:360p v:1,a:1,name:480p v:2,a:2,name:720p" \
-      -hls_segment_filename "${outputPath}/%v/segment%03d.ts" \
-      "${outputPath}/%v/index.m3u8"
-  `;
+  const incomingFilepath = await downloadS3Object(
+    inputBucket,
+    inputKey,
+    UPLOAD_ROOT,
+  );
 
-  const childProcess = spawn("bash", ["-c", ffmpegCommand]);
+  // finally transcode the video and save it
+  await transcodeVideo(incomingFilepath, outputPath);
 
-  childProcess.stdout.on("data", process.stdout.write);
-  childProcess.stderr.on("data", process.stderr.write);
+  // upload the transcoded multi-resolution segments
+  await uploadDirectory(outputPath, outputBucket, jobId);
 
-  childProcess.on("error", (error) => {
-    console.log(JSON.stringify(error));
-  });
-  childProcess.on("close", async (code) => {
-    if (code !== 0) {
-      const err = new Error("Operation failed!");
-      throw err;
-    }
-
-    // upload the transcoded multi-resolution segments
-    await uploadDirectory(outputPath);
-
-    // remove the original now
-    await s3Client.send(
-      new DeleteObjectCommand({ Bucket: bucketName, Key: objectKey }),
-    );
-  });
-};
-
-const uploadDirectory = async (directoryPath: string) => {
-  const dirEntries = await fs.readdir(directoryPath, {
-    recursive: true,
-    withFileTypes: true,
-  });
-
-  for (const dirEntry of dirEntries) {
-    if (dirEntry.isDirectory()) return;
-
-    const filepath = path.join(
-      dirEntry.parentPath.replace(`${UPLOAD_ROOT}/`, ""),
-      dirEntry.name,
-    );
-    await s3Client.send(
-      new PutObjectCommand({ Bucket: outputBucket, Key: filepath }),
-    );
-  }
-};
+  // remove the original now
+  await deleteS3Object(inputBucket, inputKey);
+} catch (err) {
+  console.log(err);
+  process.exit(1);
+}

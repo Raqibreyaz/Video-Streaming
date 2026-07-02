@@ -33,7 +33,6 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-    "paths": { "@/*": ["./src/*"] },
     "noEmitOnError": true,
     "removeComments": true
   }

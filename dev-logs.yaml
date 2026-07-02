@@ -1,0 +1,9 @@
+- path.relative(directoryPath,absolutePath), this allows to make extract the path starting after 'directoryPath' from absolutePath
+
+- whole directory uploads requires manually traversing the directory recursively and upload one by one
+
+- it is better practice to abstract the callback based logics like child process handling in a separate promised based function and try to make the code flow flat
+
+- it is not sure that if readStream has finished writing to writeStream and writeStream data is immediately drained and now empty, so return only when writeStream also has ended, pipeline() handles this implicitly
+
+AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
