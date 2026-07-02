@@ -6,4 +6,10 @@
 
 - it is not sure that if readStream has finished writing to writeStream and writeStream data is immediately drained and now empty, so return only when writeStream also has ended, pipeline() handles this implicitly
 
+- @/* type imports intellisense works correctly but resolving to a normal js import requires a separate build tool as 'tsc' will not do it for you
+
+need-to-learn-explicitly:
+- Dockerfile configuration
+- child_processes module
+
 AWS_CONTAINER_CREDENTIALS_RELATIVE_URI
