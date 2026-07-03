@@ -36,5 +36,6 @@
     "paths": { "@/*": ["./src/*"] },
     "noEmitOnError": true,
     "removeComments": true
-  }
+  },
+  "exclude": ["node_modules", "dist"]
 }
