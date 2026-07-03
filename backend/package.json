@@ -13,7 +13,10 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.1077.0",
-    "@types/aws-lambda": "^8.10.162"
+    "@aws-sdk/client-ecs": "^3.1078.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.162",
+    "@types/node": "^26.1.0"
   }
 }

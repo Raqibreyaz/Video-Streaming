@@ -8,6 +8,11 @@
 
 - @/* type imports intellisense works correctly but resolving to a normal js import requires a separate build tool as 'tsc' will not do it for you
 
+- "executing the ECS from lambda requires 2 permissions":
+  - ecs::RunTask and iam::PassRole
+  - ecs::RunTask is on the task-definition of ECS while iam::PassRole is on the IAM role of the ECS
+  - ecs::RunTask is to execute ECS job and iam:PassRole is to pass the ecsTaskExecutionRole role to ECS
+
 need-to-learn-explicitly:
 - Dockerfile configuration
 - child_processes module
