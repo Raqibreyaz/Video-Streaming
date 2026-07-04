@@ -10,7 +10,13 @@ export const lamda = async (event: S3Event) => {
   const objectKey = decodeURIComponent(
     event.Records[0]?.s3?.object?.key?.replace(/\+/g, " ") || "",
   );
+  const objectSize = event.Records[0]?.s3.object.size ?? 0;
   const tempBucketName = event.Records[0]?.s3.bucket.name;
+
+  // skipping empty file + folder which is also of size=0
+  if (objectSize === 0) {
+    return;
+  }
 
   const runTaskCommand = new RunTaskCommand({
     taskDefinition: process.env["TASK_DEFINITION_ARN"],
