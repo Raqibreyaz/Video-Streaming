@@ -13,8 +13,16 @@
   - ecs::RunTask is on the task-definition of ECS while iam::PassRole is on the IAM role of the ECS
   - ecs::RunTask is to execute ECS job and iam:PassRole is to pass the ecsTaskExecutionRole role to ECS
 
+- file upload event on S3 can be non-PUT type too, uploading from console or uploading from cli uses different types, so always check "all object creation events"
+
+- zipping the pnpm based node_modules directory causes failure as sylinked packages are not working as expected in the lambda runtime, maybe our zipping tool is not preserving the symlinks or the runtime didn't.
+- fix: 
+  - tried to use npm-like flat structure by adding 'node-linker=hoisted' in .npmrc in the project, but still didnt work, sylmlinking was still being used
+  - so migrated to npm for now
+  - A very interesting thing i found, using pnpm when i created the zip it was ~26MB but when i used npm then it becomes ~3MB, i think symlinking works very differently across tools!
+
+- "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI", this env var is passed to the container containing the credentials required to work with the allowed services in the assumed role
+
 need-to-learn-explicitly:
 - Dockerfile configuration
 - child_processes module
-
-AWS_CONTAINER_CREDENTIALS_RELATIVE_URI

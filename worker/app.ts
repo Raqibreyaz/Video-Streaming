@@ -15,10 +15,6 @@ if (!jobId || !inputBucket || !inputKey || !outputBucket)
     "Job Id, Input Bucket, Input Key and Output Bucket all are required!",
   );
 
-if (!process.env["AWS_CONTAINER_CREDENTIALS_RELATIVE_URI"]) {
-  throw new Error("Container must be authorised to work with the S3!");
-}
-
 try {
   // create the output directory to store the transcoded segments
   const outputName = crypto.randomUUID();
