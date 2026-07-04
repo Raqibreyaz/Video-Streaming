@@ -23,6 +23,16 @@
 
 - "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI", this env var is passed to the container containing the credentials required to work with the allowed services in the assumed role
 
+- on creating a docker image, it adds a default tag ':latest' as postfix
+
+- an image can have multiple names pointing to same image, we usually do this on publishing the image with a different name
+
+- "locally the container is running fine, but in ECS it is showing module dist/app.js not found, because 2 issues were there":
+  1. task definition was pointing to an older image version 
+  2. we didnt update the image alias which was to be pushed, so it remained pointing to the older image
+  - so for solving this a new task definition revision will need to be created and it will point to the new updated image
+  - also will require to update the task-definition-arn env var in the lambda env vars + ecs::RunTask role policy
+
 need-to-learn-explicitly:
 - Dockerfile configuration
 - child_processes module
