@@ -5,11 +5,8 @@ const config: AWS = {
   frameworkVersion: "4",
   provider: {
     name: "aws",
-    runtime: "nodejs20.x",
+    runtime: "nodejs24.x",
     region: "ap-south-1",
-    iam: {
-      role: "arn:aws:iam::482707530865:role/service-role/videoTranscoder-role-3aqfllmz", //use this existing role on lambda
-    },
     timeout: 30, //lambda timeout=30s
     memorySize: 128,
     deploymentBucket: {
@@ -21,6 +18,7 @@ const config: AWS = {
     s3Handler: {
       name: "videoTranscoder-managed",
       handler: "dist/app.lambda",
+      role: "arn:aws:iam::482707530865:role/service-role/videoTranscoder-role-3aqfllmz", //use this existing role on lambda
       events: [
         {
           s3: {
@@ -40,16 +38,15 @@ const config: AWS = {
         TASK_DEFINITION_ARN:
           "arn:aws:ecs:ap-south-1:482707530865:task-definition/video-transcoder:3",
       },
-      url: true, //adds a function url to invoke lambda
+      package: {
+        patterns: [
+          "!app.ts",
+          "!tsconfig.json",
+          "!package-lock.json",
+          "!node_modules/@types/**",
+        ],
+      },
     },
-  },
-  package: {
-    patterns: [
-      "!app.ts",
-      "!tsconfig.json",
-      "!package-lock.json",
-      "!node_modules/@types/**",
-    ],
   },
 };
 
