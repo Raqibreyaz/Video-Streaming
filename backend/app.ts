@@ -19,8 +19,13 @@ export const lambda = async (event: S3Event) => {
   const objectSize = event.Records[0]?.s3.object.size ?? 0;
   const tempBucketName = event.Records[0]?.s3.bucket.name;
 
+  const isSupported = [".mp4", ".mkv"].some((extension) =>
+    objectKey.endsWith(extension),
+  );
+
   // skipping empty file + folder which is also of size=0
-  if (objectSize === 0) {
+  // skipping unsupported files
+  if (objectSize === 0 || !isSupported) {
     return;
   }
 
