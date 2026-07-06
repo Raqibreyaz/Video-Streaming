@@ -1,4 +1,3 @@
-import crypto from "node:crypto";
 import path from "node:path";
 import { existsSync, mkdirSync } from "node:fs";
 import transcodeVideo from "./src/transcodeVideo.js";
@@ -17,7 +16,7 @@ if (!jobId || !inputBucket || !inputKey || !outputBucket)
 
 try {
   // create the output directory to store the transcoded segments
-  const outputName = crypto.randomUUID();
+  const outputName = inputKey;
   const outputPath = path.join(UPLOAD_ROOT, outputName);
   if (!existsSync(outputPath)) {
     mkdirSync(outputPath, { recursive: true });
@@ -33,7 +32,7 @@ try {
   await transcodeVideo(incomingFilepath, outputPath);
 
   // upload the transcoded multi-resolution segments
-  await uploadDirectory(outputPath, outputBucket, jobId);
+  await uploadDirectory(outputPath, outputBucket, inputKey);
 
   // remove the original now
   await deleteS3Object(inputBucket, inputKey);

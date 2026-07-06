@@ -26,6 +26,16 @@ issues:
       2. we didnt update the image alias which was to be pushed, so it remained pointing to the older image
       - so for solving this a new task definition revision will need to be created and it will point to the new updated image
       - also will require to update the task-definition-arn env var in the lambda env vars + ecs::RunTask role policy
+
+  - issue: since we had pr-existing transcoded videos directory but with UUID so we can't upload with mongodb object id
+    fix: so for backward compatibility we will use UUID further on.
+
+  - issue: database should have the name of the video directory from permanent-bucket, so it got tricky as we can only get it after final processing
+    fix: instead, we will create an id which will be passed to the worker-container to upload with that name, for that we will upload in temp-bucket with the same name to take the name directly
+
+  - issue: for streaming a chunked transcoded video from a private bucket, presigned URLs will be terrible as there could be 100s of chunks and for each will require creating presigned URLs, same for cloudfront signed URL
+    fix: instead we will use cloudfront signed cookies, which are there for exactly this purpose, we cant allow a user for multiple files using signed URLs but we can do by using signed cookies as they are stored in browser for a given limited time and for each chunk browser sends the cookie to verify it's authority, here server sets the cookie header with 3 arrayed pairs, 'CloudFront-Policy', 'CloudFront-Signature' and 'CloudFront-Key-Pair-Id'
+
 info:
   - path.relative(directoryPath,absolutePath), this allows to make extract the path starting after 'directoryPath' from absolutePath
 
@@ -33,17 +43,19 @@ info:
 
   - it is better practice to abstract the callback based logics like child process handling in a separate promised based function and try to make the code flow flat
 
-  - "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI", this env var is passed to the container containing the credentials required to work with the allowed services in the assumed role
+  - AWS_CONTAINER_CREDENTIALS_RELATIVE_URI, this env var is passed to the container containing the credentials required to work with the allowed services in the assumed role
 
   - on creating a docker image, it adds a default tag ':latest' as postfix
 
   - an image can have multiple names pointing to same image, we usually do this on publishing the image with a different name by tagging
 
-  - 'serverless framework' adds an another lambda function just for s3 notifications if an existing bucket configured to be used, because cloudformation can only set lambda trigger on buckets which are created in it's stack, so for existing buckets it creates a mini lambda(named like *-custom-resource-existing-s3) which runs aws-sdk to do 'PutBucketNotificationConfiguration' adding the lambda to be triggered by s3 notification
+  - serverless framework adds an another lambda function just for s3 notifications if an existing bucket configured to be used, because cloudformation can only set lambda trigger on buckets which are created in it's stack, so for existing buckets it creates a mini lambda(named like *-custom-resource-existing-s3) which runs aws-sdk to do 'PutBucketNotificationConfiguration' adding the lambda to be triggered by s3 notification
 
-  - 'serverless framework' creates deployment artifact bucket, likely storing the zip + json based snapshot and state of the code and serverless config for each deployment, and it also provides flexibility to put max limit of snapshots to avoid clutter
+  - serverless framework creates deployment artifact bucket, likely storing the zip + json based snapshot and state of the code and serverless config for each deployment, and it also provides flexibility to put max limit of snapshots to avoid clutter
 
   - we can also ignore files to be uploaded to the lambda using the serverless config, reducing lambda code size
+
+  - in express, for adding multiple key-pairs value to a header like 'Set-Cookie' we use res.append('Set-Cookie','value'), append the values by calling it each time
 
 need-to-learn-explicitly:
 - Dockerfile configuration

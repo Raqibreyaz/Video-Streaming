@@ -11,6 +11,19 @@
   "license": "ISC",
   "type": "module",
   "devDependencies": {
-    "serverless": "^4.38.1"
+    "@serverless/typescript": "^4.30.0",
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.1.0",
+    "serverless": "^4.38.1",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1079.0",
+    "@aws-sdk/cloudfront-signer": "^3.1078.0",
+    "@aws-sdk/s3-request-presigner": "^3.1079.0",
+    "express": "^5.2.1",
+    "mongodb": "^7.4.0",
+    "mongoose": "^9.7.3",
+    "serverless-http": "^4.0.0"
   }
 }

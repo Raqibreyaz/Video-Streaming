@@ -16,6 +16,7 @@ export const lambda = async (event: S3Event) => {
   const objectKey = decodeURIComponent(
     event.Records[0]?.s3?.object?.key?.replace(/\+/g, " ") || "",
   );
+  const objectUniqueName = objectKey.replace(".mp4", "").replace(".mkv", "");
   const objectSize = event.Records[0]?.s3.object.size ?? 0;
   const tempBucketName = event.Records[0]?.s3.bucket.name;
 
@@ -47,7 +48,7 @@ export const lambda = async (event: S3Event) => {
           environment: [
             { name: "JOB_ID", value: crypto.randomUUID() },
             { name: "INPUT_BUCKET", value: tempBucketName },
-            { name: "INPUT_KEY", value: objectKey },
+            { name: "INPUT_KEY", value: objectUniqueName },
             { name: "OUTPUT_BUCKET", value: outputBucket },
           ],
         },

@@ -16,7 +16,7 @@ const s3Client = new S3Client({ region: "ap-south-1" });
 export async function uploadDirectory(
   directoryPath: string,
   outputBucket: string,
-  jobId: string,
+  uploadPrefix: string,
 ) {
   const dirEntries = await fs.readdir(directoryPath, {
     recursive: true,
@@ -32,7 +32,7 @@ export async function uploadDirectory(
     const relativeFromRoot = path.relative(directoryPath, absolutePath);
     // This will be "720p/index.m3u8" when directoryPath = "/tmp/uuid"
 
-    const s3Key = path.join(jobId, relativeFromRoot);
+    const s3Key = path.join(uploadPrefix, relativeFromRoot);
 
     const readStream = createReadStream(absolutePath);
     await s3Client.send(
