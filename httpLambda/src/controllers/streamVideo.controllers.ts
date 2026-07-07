@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { getSignedCookies } from "@aws-sdk/cloudfront-signer";
-import Video from "../models/video.models";
+import Video from "../models/video.models.js";
 
 interface StreamVideoParams {
   id: string;
@@ -50,5 +50,5 @@ export default async function streamVideo(
     res.append("Set-Cookie", setCookieHeader),
   );
 
-  res.json({ success: true, videoUrl: `${baseUrl}/master.m3u8` });
+  res.json({ success: true, videoUrl: `https://${cloudfrontDomain}/${video.videoId}/master.m3u8` });
 }

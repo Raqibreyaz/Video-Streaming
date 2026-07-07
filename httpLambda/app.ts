@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import serverless from "serverless-http";
 import connectDB from "./db.js";
 import listVideos from "./src/controllers/listVideos.controllers.js";
@@ -16,7 +16,7 @@ app.post("/", uploadVideo);
 
 app.get("/:id", streamVideo);
 
-app.use((err: unknown, _req: Request, res: Response) => {
+app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   if (err instanceof Error) {
     return res.json({ message: err.message });
   } else {

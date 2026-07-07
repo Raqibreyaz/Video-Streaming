@@ -36,6 +36,12 @@ issues:
   - issue: for streaming a chunked transcoded video from a private bucket, presigned URLs will be terrible as there could be 100s of chunks and for each will require creating presigned URLs, same for cloudfront signed URL
     fix: instead we will use cloudfront signed cookies, which are there for exactly this purpose, we cant allow a user for multiple files using signed URLs but we can do by using signed cookies as they are stored in browser for a given limited time and for each chunk browser sends the cookie to verify it's authority, here server sets the cookie header with 3 arrayed pairs, 'CloudFront-Policy', 'CloudFront-Signature' and 'CloudFront-Key-Pair-Id'
 
+  - issue: in vs-code, i got no issue of not using module-resolution even with latest ts-version but in antigravity it shown error
+    fix: so added moduleResolution "nodenext" with module "nodenext"
+
+  - issue: a presigned url is just to authorize to upload with the given file but not stops user on how many times it can be used, means S3 will not block user to use the same pre-signed url again until it is expired
+    fix: better practice is to keep the ttl very short such that only 1 request can be succeeded, no problem if it expires while the upload is in processing as expiry is done before upload start
+
 info:
   - path.relative(directoryPath,absolutePath), this allows to make extract the path starting after 'directoryPath' from absolutePath
 

@@ -17,10 +17,10 @@ const config: AWS = {
     httpHandler: {
       name: "httpApiHandler-managed",
       handler: "dist/app.lambda",
-      role:"arn:aws:iam::482707530865:role/put-to-temp-bucket-role",
+      role: "arn:aws:iam::482707530865:role/put-to-temp-bucket-role",
       url: {
         cors: {
-          allowedOrigins: ["*"],
+          allowedOrigins: ["http://localhost:5173"],
           allowedMethods: ["GET", "POST"],
           allowCredentials: true,
           exposedResponseHeaders: ["Set-Cookie"],
@@ -33,15 +33,17 @@ const config: AWS = {
         CLOUDFRONT_DOMAIN: "d2tqc45o39v2m3.cloudfront.net",
       },
       package: {
+        individually: true,
         patterns: [
           "!src",
           "!app.ts",
+          "!db.ts",
           "!serverless.ts",
           "!tsconfig.json",
           "!package-lock.json",
-          "!node-modules/@types/**",
-          "!node-modules/serverless",
-          "!node-modules/typescript",
+          "!node_modules/@types/**",
+          "!node_modules/serverless",
+          "!node_modules/typescript",
         ],
       },
     },

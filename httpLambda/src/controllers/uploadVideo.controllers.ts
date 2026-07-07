@@ -1,8 +1,8 @@
 import path from "node:path";
 import { Request, Response } from "express";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import Video from "../models/video.models.js";
 import { getSignedUrl as getS3SignedUrl } from "@aws-sdk/s3-request-presigner";
+import Video from "../models/video.models.js";
 
 interface BodyType {
   fileName: string;
@@ -28,20 +28,13 @@ export default async function uploadVideo(
   const isUnSupportedFile =
     !req.body.fileType ||
     !req.body.fileType.startsWith("video/") ||
-    [".mkv", ".mp4"].some((extension) => extension === videoExtension);
+    ![".mkv", ".mp4"].some((extension) => extension === videoExtension);
 
   if (isUnSupportedFile) throw new Error("Unsupported file provided!");
 
   // object key by UUID with video extension
   const objectUniqueName = crypto.randomUUID();
   const s3ObjectKey = objectUniqueName + videoExtension;
-
-  await Video.insertOne({
-    videoId: objectUniqueName,
-    videoName,
-    duration,
-    originalSize,
-  });
 
   const putObjectCommand = new PutObjectCommand({
     Bucket: BUCKET_NAME,
@@ -51,7 +44,14 @@ export default async function uploadVideo(
   });
 
   const signedUrl = await getS3SignedUrl(s3Client, putObjectCommand, {
-    expiresIn: 3600,
+    expiresIn: 30,
+  });
+
+  await Video.insertOne({
+    videoId: objectUniqueName,
+    videoName,
+    duration,
+    originalSize,
   });
 
   res.json({ message: "Video uploaded successfully!", signedUrl });

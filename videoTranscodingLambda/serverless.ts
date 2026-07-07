@@ -39,6 +39,7 @@ const config: AWS = {
           "arn:aws:ecs:ap-south-1:482707530865:task-definition/video-transcoder:3",
       },
       package: {
+        individually: true,
         patterns: [
           "!app.ts",
           "!tsconfig.json",
