@@ -9,5 +9,6 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1077.0"
-  }
+  },
+  "type": "module"
 }

@@ -36,7 +36,7 @@ const config: AWS = {
         SUBNET_IDS:
           "subnet-02f4934bf05d48283,subnet-004c2cc6320c53db4,subnet-0b8ba7663f1e58b3d",
         TASK_DEFINITION_ARN:
-          "arn:aws:ecs:ap-south-1:482707530865:task-definition/video-transcoder:3",
+          "arn:aws:ecs:ap-south-1:482707530865:task-definition/video-transcoder:4",
       },
       package: {
         individually: true,

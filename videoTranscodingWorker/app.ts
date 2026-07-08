@@ -16,8 +16,8 @@ if (!jobId || !inputBucket || !inputKey || !outputBucket)
 
 try {
   // create the output directory to store the transcoded segments
-  const outputName = inputKey;
-  const outputPath = path.join(UPLOAD_ROOT, outputName);
+  const objectUniqueName = inputKey.replace(".mp4", "").replace(".mkv", "");
+  const outputPath = path.join(UPLOAD_ROOT, objectUniqueName);
   if (!existsSync(outputPath)) {
     mkdirSync(outputPath, { recursive: true });
   }
@@ -32,7 +32,7 @@ try {
   await transcodeVideo(incomingFilepath, outputPath);
 
   // upload the transcoded multi-resolution segments
-  await uploadDirectory(outputPath, outputBucket, inputKey);
+  await uploadDirectory(outputPath, outputBucket, objectUniqueName);
 
   // remove the original now
   await deleteS3Object(inputBucket, inputKey);

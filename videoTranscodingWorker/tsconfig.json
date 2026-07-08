@@ -4,8 +4,9 @@
     "outDir": "dist",
 
     // Environment Settings
-    "module": "es2022",
     "target": "es2022",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
 
     // For nodejs:
     "types": ["node"],

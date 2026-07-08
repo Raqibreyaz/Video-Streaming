@@ -1,103 +1,118 @@
-import React, { useEffect, useRef } from "react";
-import videojs from "video.js";
-import "video.js/dist/video-js.css";
+import "media-chrome";
+import "hls-video-element";
+import type { Video } from "../types";
 
-import "videojs-contrib-quality-levels";
-import "videojs-hls-quality-selector";
-
-type VideoSource = {
-  src: string;
-  type: string;
-};
-
-type VideoPlayerOptions = {
-  autoplay?: boolean | "muted" | "play" | "any";
-  controls?: boolean;
-  responsive?: boolean;
-  fluid?: boolean;
-  poster?: string;
-  preload?: "auto" | "metadata" | "none";
-  sources: VideoSource[];
-  html5?: {
-    vhs?: {
-      overrideNative?: boolean;
-    };
-    nativeAudioTracks?: boolean;
-    nativeVideoTracks?: boolean;
-  };
-};
-
-type VideoPlayerInstance = ReturnType<typeof videojs>;
-
-export interface StreamPlayer extends VideoPlayerInstance {
-  qualityLevels?: () => {
-    length: number;
-    [index: number]: {
-      height?: number;
-      enabled?: boolean;
-    };
-    on?: (event: string, handler: (...args: any[]) => void) => void;
-  };
-  hlsQualitySelector?: (options?: {
-    displayCurrentQuality?: boolean;
-  }) => void;
+interface PlayerProps {
+  videoUrl: string;
+  video: Video;
+  onBack: () => void;
 }
 
-type VideoPlayerProps = {
-  options: VideoPlayerOptions;
-  onReady?: (player: StreamPlayer) => void;
-};
+function formatDuration(secs: number): string {
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
 
-export const VideoPlayer: React.FC<VideoPlayerProps> = ({
-  options,
-  onReady,
-}) => {
-  const videoRef = useRef<HTMLDivElement | null>(null);
-  const playerRef = useRef<StreamPlayer | null>(null);
+function formatSize(bytes: number): string {
+  if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(2)} GB`;
+  if (bytes >= 1024 ** 2) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
+  return `${(bytes / 1024).toFixed(0)} KB`;
+}
 
-  useEffect(() => {
-    if (!playerRef.current && videoRef.current) {
-      const videoElement = document.createElement("video-js");
-      videoElement.classList.add("vjs-big-play-centered");
-      videoRef.current.appendChild(videoElement);
-
-      const player = (playerRef.current = videojs(videoElement, options, function () {
-        videojs.log("player is ready");
-
-        const qualityLevels = player.qualityLevels?.();
-        videojs.log("quality levels:", qualityLevels?.length ?? 0);
-
-        if (player.hlsQualitySelector) {
-          player.hlsQualitySelector({
-            displayCurrentQuality: true,
-          });
-        }
-
-        onReady?.(player);
-      }) as StreamPlayer);
-    } else if (playerRef.current) {
-      const player = playerRef.current;
-      player.autoplay(options.autoplay ?? false);
-      player.src(options.sources);
-    }
-  }, [options, onReady]);
-
-  useEffect(() => {
-    return () => {
-      const player = playerRef.current;
-
-      if (player && !player.isDisposed()) {
-        player.dispose();
-        playerRef.current = null;
-      }
-    };
-  }, []);
-
+export default function Player({ videoUrl, video, onBack }: PlayerProps) {
   return (
-    <div data-vjs-player style={{ width: "600px" }}>
-      <div ref={videoRef} />
+    <div className="animate-fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      {/* Back button + title */}
+      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <button
+          className="btn-ghost"
+          onClick={onBack}
+          style={{ padding: "8px 14px", flexShrink: 0 }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <path d="M19 12H5M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Back
+        </button>
+        <div style={{ minWidth: 0 }}>
+          <h2
+            style={{
+              fontSize: "1.2rem",
+              fontWeight: 700,
+              color: "var(--text-primary)",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {video.videoName}
+          </h2>
+          <div style={{ display: "flex", gap: 12, marginTop: 4, alignItems: "center" }}>
+            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+              🕐 {formatDuration(video.duration)}
+            </span>
+            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+              💾 {formatSize(video.originalSize)}
+            </span>
+            <span className="badge badge-purple">HLS</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Player */}
+      <div
+        style={{
+          borderRadius: "var(--radius-xl)",
+          overflow: "hidden",
+          border: "1px solid var(--border)",
+          boxShadow: "var(--shadow-glow)",
+          background: "#000",
+        }}
+      >
+        <media-controller>
+          <hls-video
+            slot="media"
+            src={videoUrl}
+            crossOrigin="use-credentials"
+            preload="auto"
+          />
+          <media-loading-indicator slot="centered-chrome" noautohide="" />
+          <media-control-bar>
+            <media-play-button />
+            <media-mute-button />
+            <media-volume-range />
+            <media-time-display showduration="" />
+            <media-time-range />
+            <media-playback-rate-button />
+            <media-pip-button />
+            <media-fullscreen-button />
+          </media-control-bar>
+        </media-controller>
+      </div>
+
+      {/* Info card */}
+      <div
+        className="glass-card"
+        style={{ padding: "20px 24px", display: "flex", gap: 32, flexWrap: "wrap" }}
+      >
+        {[
+          { label: "FILE NAME", value: video.videoName },
+          { label: "DURATION", value: formatDuration(video.duration) },
+          { label: "ORIGINAL SIZE", value: formatSize(video.originalSize) },
+          { label: "FORMAT", value: "HLS Adaptive (master.m3u8)" },
+          { label: "CDN", value: "AWS CloudFront" },
+        ].map(({ label, value }) => (
+          <div key={label}>
+            <p style={{ fontSize: "0.73rem", color: "var(--text-muted)", marginBottom: 4, letterSpacing: "0.06em" }}>
+              {label}
+            </p>
+            <p style={{ color: "var(--text-primary)", fontWeight: 500 }}>{value}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
-};
-
-export default VideoPlayer; 
+}
