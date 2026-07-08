@@ -1,7 +1,11 @@
 import path from "node:path";
 import { existsSync, mkdirSync } from "node:fs";
 import transcodeVideo from "./src/transcodeVideo.js";
-import { deleteS3Object, downloadS3Object, uploadDirectory } from "./src/s3.js";
+import {
+  deleteS3andLocalObject,
+  downloadS3Object,
+  uploadDirectory,
+} from "./src/s3.js";
 
 const UPLOAD_ROOT = "/tmp";
 const jobId = process.env["JOB_ID"];
@@ -16,7 +20,7 @@ if (!jobId || !inputBucket || !inputKey || !outputBucket)
 
 try {
   // create the output directory to store the transcoded segments
-  const objectUniqueName = inputKey.replace(".mp4", "").replace(".mkv", "");
+  const objectUniqueName = path.basename(inputKey, path.extname(inputKey));
   const outputPath = path.join(UPLOAD_ROOT, objectUniqueName);
   if (!existsSync(outputPath)) {
     mkdirSync(outputPath, { recursive: true });
@@ -35,8 +39,8 @@ try {
   await uploadDirectory(outputPath, outputBucket, objectUniqueName);
 
   // remove the original now
-  await deleteS3Object(inputBucket, inputKey);
+  await deleteS3andLocalObject(inputBucket, inputKey, incomingFilepath);
 } catch (err) {
-  console.log(err);
+  console.error(err);
   process.exit(1);
 }

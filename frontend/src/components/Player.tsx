@@ -12,7 +12,8 @@ function formatDuration(secs: number): string {
   const h = Math.floor(secs / 3600);
   const m = Math.floor((secs % 3600) / 60);
   const s = secs % 60;
-  if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  if (h > 0)
+    return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
@@ -24,7 +25,10 @@ function formatSize(bytes: number): string {
 
 export default function Player({ videoUrl, video, onBack }: PlayerProps) {
   return (
-    <div className="animate-fade-up" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+    <div
+      className="animate-fade-up"
+      style={{ display: "flex", flexDirection: "column", gap: 24 }}
+    >
       {/* Back button + title */}
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
         <button
@@ -32,8 +36,19 @@ export default function Player({ videoUrl, video, onBack }: PlayerProps) {
           onClick={onBack}
           style={{ padding: "8px 14px", flexShrink: 0 }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-            <path d="M19 12H5M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round" />
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+          >
+            <path
+              d="M19 12H5M12 5l-7 7 7 7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
           Back
         </button>
@@ -50,7 +65,14 @@ export default function Player({ videoUrl, video, onBack }: PlayerProps) {
           >
             {video.videoName}
           </h2>
-          <div style={{ display: "flex", gap: 12, marginTop: 4, alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              marginTop: 4,
+              alignItems: "center",
+            }}
+          >
             <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
               🕐 {formatDuration(video.duration)}
             </span>
@@ -96,7 +118,12 @@ export default function Player({ videoUrl, video, onBack }: PlayerProps) {
       {/* Info card */}
       <div
         className="glass-card"
-        style={{ padding: "20px 24px", display: "flex", gap: 32, flexWrap: "wrap" }}
+        style={{
+          padding: "20px 24px",
+          display: "flex",
+          gap: 32,
+          flexWrap: "wrap",
+        }}
       >
         {[
           { label: "FILE NAME", value: video.videoName },
@@ -106,10 +133,19 @@ export default function Player({ videoUrl, video, onBack }: PlayerProps) {
           { label: "CDN", value: "AWS CloudFront" },
         ].map(({ label, value }) => (
           <div key={label}>
-            <p style={{ fontSize: "0.73rem", color: "var(--text-muted)", marginBottom: 4, letterSpacing: "0.06em" }}>
+            <p
+              style={{
+                fontSize: "0.73rem",
+                color: "var(--text-muted)",
+                marginBottom: 4,
+                letterSpacing: "0.06em",
+              }}
+            >
               {label}
             </p>
-            <p style={{ color: "var(--text-primary)", fontWeight: 500 }}>{value}</p>
+            <p style={{ color: "var(--text-primary)", fontWeight: 500 }}>
+              {value}
+            </p>
           </div>
         ))}
       </div>

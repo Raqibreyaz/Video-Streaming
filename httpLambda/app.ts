@@ -17,10 +17,10 @@ app.post("/", uploadVideo);
 app.get("/:id", streamVideo);
 
 app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  console.log(err);
   if (err instanceof Error) {
     return res.json({ message: err.message });
   } else {
-    console.log(err);
     return res.json({ message: "internal server error" });
   }
 });

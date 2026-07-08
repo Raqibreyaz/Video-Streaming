@@ -108,7 +108,7 @@ export default function transcodeVideo(
     childProcess.on("error", reject);
     childProcess.on("close", async (code) => {
       if (code !== 0) {
-        return reject(new Error("Operation failed!"));
+        return reject(new Error(`FFmpeg exited with code ${code}`));
       }
       resolve(undefined);
     });

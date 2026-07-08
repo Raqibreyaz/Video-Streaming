@@ -42,6 +42,15 @@ issues:
   - issue: a presigned url is just to authorize to upload with the given file but not stops user on how many times it can be used, means S3 will not block user to use the same pre-signed url again until it is expired
     fix: better practice is to keep the ttl very short such that only 1 request can be succeeded, no problem if it expires while the upload is in processing as expiry is done before upload start
 
+  - issue: even for a GetObjectCommand request, it got failed as the assumed role doesn't have s3::ListBucket permission, maybe it was getting used internally by the sdk
+    fix:  so added the s3::ListBucket permission to the role, and it got fixed
+
+  - issue: passing cloudfront private key directly in lambda env vars corrupts the newline(\n) chars by making \ and n separate, which gives error, {"message":"error:1E08010C:DECODER routines::unsupported"}
+    fix: most reliable fix is to base64 encode the key and then decode at runtime
+
+  - issue: for getting the signed cookies, you know the cookie behavior that it can set only cookies for it's own domain and parent domain, api.example.com can only set domain for api.example.com or (.)example.com, so adding cloudfront domain will make the cookie invalid
+    fix: we would require a custom domain where the cdn and application are on the same parent domain, since for testing i made the cdn publically accessible for now, but in prod will definitely a custom domain required
+
 info:
   - path.relative(directoryPath,absolutePath), this allows to make extract the path starting after 'directoryPath' from absolutePath
 

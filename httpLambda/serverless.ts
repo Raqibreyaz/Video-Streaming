@@ -20,7 +20,7 @@ const config: AWS = {
       role: "arn:aws:iam::482707530865:role/put-to-temp-bucket-role",
       url: {
         cors: {
-          allowedOrigins: ["http://localhost:5173"],
+          allowedOrigins: ["http://localhost:5173", "http://local.com:5173"],
           allowedMethods: ["GET", "POST"],
           allowCredentials: true,
           exposedResponseHeaders: ["Set-Cookie"],

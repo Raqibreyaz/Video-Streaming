@@ -7,8 +7,11 @@ interface StreamVideoParams {
 }
 
 const cloudfrontDomain = process.env["CLOUDFRONT_DOMAIN"]!;
-const cloudfrontPrivateKey = process.env["CLOUDFRONT_PRIVATE_KEY"]!;
 const cloudfrontKeyPairId = process.env["CLOUDFRONT_KEY_PAIR_ID"]!;
+
+const cloudfrontPrivateKey = atob(
+  process.env["CLOUDFRONT_PRIVATE_KEY_BASE64"]!,
+);
 
 export default async function streamVideo(
   req: Request<StreamVideoParams>,
@@ -24,7 +27,7 @@ export default async function streamVideo(
   const dateGreaterThan = new Date(now).toISOString();
   const dateLessThan = new Date(now + 3600 * 1000).toISOString();
 
-  // Use the FULL distribution domain, e.g., "d1234567890.cloudfront.net"
+  // Use the FULL distribution domain, e.g. "d1234567890.cloudfront.net"
   // NOT "cloudfront.net"
   const cookieDomain = cloudfrontDomain
     .replace(/^https?:\/\//, "")
@@ -38,7 +41,7 @@ export default async function streamVideo(
     dateGreaterThan,
   });
 
-  const cookieAttrs = `Domain=${cookieDomain}; Path=/; Secure; HttpOnly; SameSite=None`;
+  const cookieAttrs = `Domain=${cookieDomain}; Path=/; HttpOnly; SameSite=Lax`;
 
   const setCookieHeaders = [
     `CloudFront-Policy=${cookies["CloudFront-Policy"]};${cookieAttrs}`,
@@ -50,5 +53,8 @@ export default async function streamVideo(
     res.append("Set-Cookie", setCookieHeader),
   );
 
-  res.json({ success: true, videoUrl: `https://${cloudfrontDomain}/${video.videoId}/master.m3u8` });
+  res.json({
+    success: true,
+    videoUrl: `https://${cloudfrontDomain}/${video.videoId}/master.m3u8`,
+  });
 }

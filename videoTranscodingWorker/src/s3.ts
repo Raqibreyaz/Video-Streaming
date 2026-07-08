@@ -35,13 +35,17 @@ export async function uploadDirectory(
     const s3Key = path.join(uploadPrefix, relativeFromRoot);
 
     const readStream = createReadStream(absolutePath);
-    await s3Client.send(
-      new PutObjectCommand({
-        Bucket: outputBucket,
-        Key: s3Key,
-        Body: readStream,
-      }),
-    );
+    try {
+      await s3Client.send(
+        new PutObjectCommand({
+          Bucket: outputBucket,
+          Key: s3Key,
+          Body: readStream,
+        }),
+      );
+    } catch (error) {
+      throw new Error(`Failed to upload ${s3Key}: ${error}`);
+    }
   }
 }
 
@@ -50,32 +54,41 @@ export async function downloadS3Object(
   objectKey: string,
   downloadPath: string,
 ) {
-  const result = await s3Client.send(
-    new GetObjectCommand({ Bucket: bucketName, Key: objectKey }),
-  );
+  try {
+    const result = await s3Client.send(
+      new GetObjectCommand({ Bucket: bucketName, Key: objectKey }),
+    );
 
-  const contentType = result.ContentType;
-  if (!contentType?.startsWith("video/")) {
-    throw new Error("non-video file detected, skipping...");
+    const contentType = result.ContentType;
+    if (!contentType?.startsWith("video/")) {
+      throw new Error("non-video file detected, skipping...");
+    }
+
+    if (!result.Body) {
+      throw new Error("file doesn't have any content!, skipping...");
+    }
+
+    // save the file locally first
+    const incomingFilepath = path.join(
+      downloadPath,
+      crypto.randomUUID() + path.extname(objectKey),
+    );
+    const bodyStream = result.Body as Readable;
+    await pipeline(bodyStream, createWriteStream(incomingFilepath));
+
+    return incomingFilepath;
+  } catch (error) {
+    throw new Error(`Failed to download ${objectKey}: ${error}`);
   }
-
-  if (!result.Body) {
-    throw new Error("file doesn't have any content!, skipping...");
-  }
-
-  // save the file locally first
-  const incomingFilepath = path.join(
-    downloadPath,
-    crypto.randomUUID() + path.extname(objectKey),
-  );
-  const bodyStream = result.Body as Readable;
-  await pipeline(bodyStream, createWriteStream(incomingFilepath));
-
-  return incomingFilepath;
 }
 
-export async function deleteS3Object(bucketName: string, objectKey: string) {
+export async function deleteS3andLocalObject(
+  bucketName: string,
+  objectKey: string,
+  localFilepath: string,
+) {
   await s3Client.send(
     new DeleteObjectCommand({ Bucket: bucketName, Key: objectKey }),
   );
+  await fs.rm(localFilepath);
 }
