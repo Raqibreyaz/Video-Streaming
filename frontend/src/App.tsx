@@ -4,11 +4,12 @@ import { useState } from "react";
 import Layout from "@/components/Layout";
 import VideoList from "@/components/VideoList";
 import UploadView from "@/components/UploadView";
+import PlayUrlView from "@/components/PlayUrlView";
 import Player from "@/components/Player";
 import { streamVideo } from "./api";
 import type { Video } from "./types";
 
-type View = "list" | "upload" | "player";
+type View = "list" | "upload" | "player" | "play-url";
 
 function App() {
   const [view, setView] = useState<View>("list");
@@ -38,12 +39,24 @@ function App() {
     setVideoUrl("");
   };
 
-  const handleNavigate = (v: "list" | "upload") => {
+  const handleNavigate = (v: "list" | "upload" | "play-url") => {
     setView(v);
-    if (v === "list") {
+    if (v === "list" || v === "upload" || v === "play-url") {
       setActiveVideo(null);
       setVideoUrl("");
     }
+  };
+
+  const handlePlayUrl = (url: string) => {
+    setVideoUrl(url);
+    setActiveVideo({
+      _id: "custom-url",
+      videoId: "custom-url",
+      videoName: "Custom Stream",
+      originalSize: 0,
+      duration: 0,
+    });
+    setView("player");
   };
 
   return (
@@ -116,6 +129,7 @@ function App() {
       {/* Views */}
       {view === "list" && <VideoList onPlay={handlePlay} />}
       {view === "upload" && <UploadView onSuccess={() => handleNavigate("list")} />}
+      {view === "play-url" && <PlayUrlView onPlay={handlePlayUrl} />}
       {view === "player" && activeVideo && (
         <Player videoUrl={videoUrl} video={activeVideo} onBack={handleBack} />
       )}

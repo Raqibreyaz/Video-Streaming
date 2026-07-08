@@ -1,6 +1,27 @@
 import "media-chrome";
+import "media-chrome/menu";
 import "hls-video-element";
 import type { Video } from "../types";
+
+// Style the quality-selector dropdown to match our dark theme
+const QUALITY_MENU_STYLES = `
+  media-rendition-selectmenu {
+    --media-menu-background: rgba(13, 18, 32, 0.96);
+    --media-menu-border: 1px solid rgba(255,255,255,0.1);
+    --media-menu-border-radius: 10px;
+    --media-menu-box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    --media-menu-item-hover-background: rgba(124,58,237,0.25);
+    --media-menu-item-checked-background: rgba(124,58,237,0.4);
+    --media-font-family: 'Inter', system-ui, sans-serif;
+  }
+`;
+
+if (!document.getElementById("quality-menu-styles")) {
+  const style = document.createElement("style");
+  style.id = "quality-menu-styles";
+  style.textContent = QUALITY_MENU_STYLES;
+  document.head.appendChild(style);
+}
 
 interface PlayerProps {
   videoUrl: string;
@@ -24,6 +45,10 @@ function formatSize(bytes: number): string {
 }
 
 export default function Player({ videoUrl, video, onBack }: PlayerProps) {
+  const url = videoUrl.replace(
+    /^https:\/\/d2tqc45o39v2m3\.cloudfront\.net/,
+    "/cdn",
+  );
   return (
     <div
       className="animate-fade-up"
@@ -97,7 +122,7 @@ export default function Player({ videoUrl, video, onBack }: PlayerProps) {
         <media-controller>
           <hls-video
             slot="media"
-            src={videoUrl}
+            src={url}
             crossOrigin="use-credentials"
             preload="auto"
           />
@@ -109,6 +134,7 @@ export default function Player({ videoUrl, video, onBack }: PlayerProps) {
             <media-time-display showduration="" />
             <media-time-range />
             <media-playback-rate-button />
+            <media-rendition-selectmenu />
             <media-pip-button />
             <media-fullscreen-button />
           </media-control-bar>

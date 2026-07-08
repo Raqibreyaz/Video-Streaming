@@ -1,8 +1,8 @@
 import React from "react";
 
 interface LayoutProps {
-  activeView: "list" | "upload" | "player";
-  onNavigate: (view: "list" | "upload") => void;
+  activeView: "list" | "upload" | "player" | "play-url";
+  onNavigate: (view: "list" | "upload" | "play-url") => void;
   children: React.ReactNode;
 }
 
@@ -68,7 +68,7 @@ export default function Layout({ activeView, onNavigate, children }: LayoutProps
 
           {/* Nav tabs */}
           <nav style={{ display: "flex", gap: 4 }}>
-            {(["list", "upload"] as const).map((view) => (
+            {(["list", "upload", "play-url"] as const).map((view) => (
               <button
                 key={view}
                 onClick={() => onNavigate(view)}
@@ -93,7 +93,7 @@ export default function Layout({ activeView, onNavigate, children }: LayoutProps
                     : {}),
                 }}
               >
-                {view === "list" ? "My Videos" : "Upload"}
+                {view === "list" ? "My Videos" : view === "upload" ? "Upload" : "Play URL"}
               </button>
             ))}
           </nav>

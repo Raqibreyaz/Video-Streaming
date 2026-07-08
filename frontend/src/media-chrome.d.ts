@@ -64,6 +64,19 @@ declare namespace React {
         React.HTMLAttributes<HTMLElement> & { noautohide?: string; slot?: string },
         HTMLElement
       >;
+      // Quality / rendition selector
+      "media-rendition-selectmenu": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
+      "media-rendition-list": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
+      "media-rendition-button": React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >;
     }
   }
 }
